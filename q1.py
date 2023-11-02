@@ -10,12 +10,12 @@ from iznetwork import IzNetwork
 # 5. Rewiring process
 # 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
 
-
 # Implementations
 # 1. Create 100x100 excitatory module, with weights and delays 
 
-N = 100
-Dmax = 20 
+N = 100     # Number of neurons in excitatory-excitatory module
+F = 17      # Scaling factor for excitatory-excitatory connections    
+Dmax = 20   # Maximum conduction delay 
 ExNet = IzNetwork(N, Dmax)
 
 W = np.zeros((N, N))
@@ -27,6 +27,14 @@ for i in range(N):
         if i == j:
             continue
         all_idxs.append((i, j))
-idx = np.array(random.sample(all_idxs, 1000))
+# idx = np.array(random.sample(all_idxs, 1000))
+idxs = random.sample(all_idxs, 1000)
 
+# Set connection weight to be 1 for randomly generated connections
+# Set random delays for these connections simultaneously. 
+for idx in idxs:
+    W[idx] = 1*F 
+    D[idx] = np.random.randint(0, Dmax+1) # Assume delays have to be integer values in range [0,20], need to double check 
 
+print(W)
+print(D)
