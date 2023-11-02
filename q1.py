@@ -34,7 +34,7 @@ idxs = random.sample(all_idxs, 1000)
 # Set random delays for these connections simultaneously. 
 for idx in idxs:
     W[idx] = 1*F 
-    D[idx] = np.random.randint(0, Dmax+1) # Assume delays have to be integer values in range [0,20], need to double check 
+    D[idx] = np.random.randint(1, Dmax+1) # Assume delays have to be integer values in range [1,20], need to double check 
 
-print(W)
-print(D)
+# Sanity check - make sure indexes are the same in both matrices
+print(np.where(W != 0)[0] == np.where(D != 0)[0])
