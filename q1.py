@@ -99,7 +99,7 @@ W[800:, :] = np.column_stack((in_to_ex_block, in_to_in_block))
 # Inhibitory neurons cannot connect to themselves, thus set the connection weight to 0. 
 W[range(800, 1000),range(800, 1000)] = 0 
 
-RewireConnectivity(0.875)
+RewireConnectivity(0.4)
 
 net = IzNetwork(N_net, 20)
 a = 0.02 * np.ones(N_net)
@@ -110,44 +110,51 @@ net.setParameters(a, b, c, d)
 net.setWeights(W)
 net.setDelays(D)
 
+# 6. Connectivity matrix, raster plot and mean firing rate over each probability p.
+
+# Mean firing rate 
+
+y, x = np.where(W[:800, :800] > 0)
+print(len(x))
+print(len(y))
+plt.scatter(x, y, s=1)
+plt.xlabel('to')
+plt.ylabel('from')
+plt.ylim(800, 0)
+plt.xlim(0, 800)
+plt.show()
+
 # T = 1000
+
+# firing_matrix = np.zeros([T, N_mod])
 # V = np.zeros((T, N_net))
+
 # for t in range(T):
 #     I = 15*np.random.poisson(0.01, N_net) 
 #     net.setCurrent(I)
 #     net.update()
 #     V[t,:], _ = net.getState()
-
+#     fired = V[t,:] > 29
+#     for i in range(0, 8):
+#         interval_sum = np.sum(fired[i*100:i*100+100])
+#         firing_matrix[t, i] = interval_sum
+    
 # t, n = np.where(V > 29)
+# plt.subplot(211)
 # plt.scatter(t, n)
 # plt.ylim(800, 0)
 # plt.xlabel('Time (ms)')
 # plt.ylabel('Neuron index')
-# plt.show()
 
-# 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
+# plt.subplot(212)
+# # Downsampling time 
+# windows = np.zeros([50, 8])
 
-# Mean firing rate 
-
-T = 1000
-
-firing_matrix = np.zeros([T, N_mod])
-
-for t in range(T):
-    I = 15*np.random.poisson(0.01, N_net) 
-    net.setCurrent(I)
-    net.update()
-    v, _ = net.getState()
-    fired = v > 29
-    for idx in fired:
-        for i in range(0, 8):
-            interval_sum = np.sum(fired[i*100:i*100+100])
-            firing_matrix[t, i] = interval_sum
-
-# Downsampling time 
+# for i in range(0, 1000, 20):
+#     windows[int(i/20),:] = np.mean(firing_matrix[i:i+50,:], axis=0)
 
 # for i in range(8):
-#     plt.plot(np.arange(0, 1000), firing_matrix[:,i], label=f"Module {i}")
+#     plt.plot(np.arange(0, 1000, 20), windows[:,i], label=f"Module {i}")
 
-plt.legend()
-plt.show()
+# plt.legend()
+# plt.show()
