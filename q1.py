@@ -110,19 +110,44 @@ net.setParameters(a, b, c, d)
 net.setWeights(W)
 net.setDelays(D)
 
+# T = 1000
+# V = np.zeros((T, N_net))
+# for t in range(T):
+#     I = 15*np.random.poisson(0.01, N_net) 
+#     net.setCurrent(I)
+#     net.update()
+#     V[t,:], _ = net.getState()
+
+# t, n = np.where(V > 29)
+# plt.scatter(t, n)
+# plt.ylim(800, 0)
+# plt.xlabel('Time (ms)')
+# plt.ylabel('Neuron index')
+# plt.show()
+
+# 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
+
+# Mean firing rate 
+
 T = 1000
-V = np.zeros((T, N_net))
+
+firing_matrix = np.zeros([T, N_mod])
+
 for t in range(T):
     I = 15*np.random.poisson(0.01, N_net) 
     net.setCurrent(I)
     net.update()
-    V[t,:], _ = net.getState()
+    v, _ = net.getState()
+    fired = v > 29
+    for idx in fired:
+        for i in range(0, 8):
+            interval_sum = np.sum(fired[i*100:i*100+100])
+            firing_matrix[t, i] = interval_sum
 
-t, n = np.where(V > 29)
-plt.scatter(t, n)
-plt.ylim(800, 0)
-plt.xlabel('Time (ms)')
-plt.ylabel('Neuron index')
+# Downsampling time 
+
+# for i in range(8):
+#     plt.plot(np.arange(0, 1000), firing_matrix[:,i], label=f"Module {i}")
+
+plt.legend()
 plt.show()
-
-# 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
