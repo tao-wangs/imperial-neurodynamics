@@ -57,6 +57,22 @@ def ExcitatoryToExcitatory(N):
     
     return W, D
 
+# 5. Rewiring process
+
+def RewireConnectivity(p):
+    src, tgt = np.where(W[:800, :800] > 0)
+    for s,t in zip(src, tgt):
+        if np.random.random() < p:
+            W[s,t] = 0
+            D[s,t] = 1
+            # Pick index of new node to rewire to. It can't be an existing
+            # connection or itself (because the total density has to be preserved)
+            h = s
+            while s == h or W[s,h]:
+                h = np.random.randint(800)
+            W[s,h] = 17
+            D[s,h] = np.random.randint(1, 20+1)
+
 # 3. Create 200x200 inhibitory population and connect to excitatory populations (1000x1000 weight matrix)
   
 W = np.zeros([1000, 1000])
@@ -83,6 +99,8 @@ W[800:, :] = np.column_stack((in_to_ex_block, in_to_in_block))
 # Inhibitory neurons cannot connect to themselves, thus set the connection weight to 0. 
 W[range(800, 1000),range(800, 1000)] = 0 
 
+RewireConnectivity(0.875)
+
 net = IzNetwork(N_net, 20)
 a = 0.02 * np.ones(N_net)
 b = np.concatenate((0.2*np.ones(800), 0.25*np.ones(200)))
@@ -107,5 +125,4 @@ plt.xlabel('Time (ms)')
 plt.ylabel('Neuron index')
 plt.show()
 
-# 5. Rewiring process
 # 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
