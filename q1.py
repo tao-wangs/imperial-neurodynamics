@@ -113,51 +113,54 @@ net.setDelays(D)
 
 # 6. Connectivity matrix, raster plot and mean firing rate over each probability p.
 
-# Mean firing rate 
+# Mean firing rate
+def PlotConnectivityMatrix(W):
+    y, x = np.where(W[:800, :800] > 0)
+    plt.scatter(x, y, s=1)
+    plt.xlabel('to')
+    plt.ylabel('from')
+    plt.ylim(800, 0)
+    plt.xlim(0, 800)
+    plt.show()
 
-y, x = np.where(W[:800, :800] > 0)
-print(len(x))
-print(len(y))
-plt.scatter(x, y, s=1)
-plt.xlabel('to')
-plt.ylabel('from')
-plt.ylim(800, 0)
-plt.xlim(0, 800)
-plt.show()
+PlotConnectivityMatrix(W)
 
-# T = 1000
+def PlotNeuronFiringAndMeanFiringRate(net):
+    T = 1000
 
-# firing_matrix = np.zeros([T, N_mod])
-# V = np.zeros((T, N_net))
+    firing_matrix = np.zeros([T, N_mod])
+    V = np.zeros((T, N_net))
 
-# for t in range(T):
-#     I = 15*np.random.poisson(0.01, N_net) 
-#     net.setCurrent(I)
-#     net.update()
-#     V[t,:], _ = net.getState()
-#     fired = V[t,:] > 29
-#     for i in range(0, 8):
-#         interval_sum = np.sum(fired[i*100:i*100+100])
-#         firing_matrix[t, i] = interval_sum
-    
-# t, n = np.where(V > 29)
-# plt.subplot(211)
-# plt.scatter(t, n)
-# plt.ylim(800, 0)
-# plt.xlabel('Time (ms)')
-# plt.ylabel('Neuron index')
+    for t in range(T):
+        I = 15 * np.random.poisson(0.01, N_net)
+        net.setCurrent(I)
+        net.update()
+        V[t, :], _ = net.getState()
+        fired = V[t, :] > 29
+        for i in range(0, 8):
+            interval_sum = np.sum(fired[i * 100:i * 100 + 100])
+            firing_matrix[t, i] = interval_sum
 
-# plt.subplot(212)
-# # Downsampling time 
-# windows = np.zeros([50, 8])
+    t, n = np.where(V > 29)
+    plt.subplot(211)
+    plt.scatter(t, n)
+    plt.ylim(800, 0)
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Neuron index')
 
-# for i in range(0, 1000, 20):
-#     windows[int(i/20),:] = np.mean(firing_matrix[i:i+50,:], axis=0)
+    plt.subplot(212)
+    # Downsampling time
+    windows = np.zeros([50, 8])
 
-# for i in range(8):
-#     plt.plot(np.arange(0, 1000, 20), windows[:,i], label=f"Module {i}")
-#
-# plt.xlabel('Time (ms)')
-# plt.ylabel('Mean firing rate')
-# plt.legend()
-# plt.show()
+    for i in range(0, 1000, 20):
+        windows[int(i / 20), :] = np.mean(firing_matrix[i:i + 50, :], axis=0)
+
+    for i in range(8):
+        plt.plot(np.arange(0, 1000, 20), windows[:, i], label=f"Module {i}")
+
+    plt.xlabel('Time (ms)')
+    plt.ylabel('Mean firing rate')
+    plt.legend()
+    plt.show()
+
+PlotNeuronFiringAndMeanFiringRate(net)
