@@ -32,10 +32,11 @@ class SmallWorldModularNetwork(object):
 
             # Update excitatory-to-inhibitory block
         for j in range(N_mod * N_ex, N_net):
-            i = np.random.randint(0, N_mod)
+            i = int(np.floor((j-800)/25))
             neurons = np.random.randint(0, N_ex, size=4)
             i = neurons + N_ex * i
             self.W[i, j] = 50 * np.random.uniform(0, 1)
+
 
         # Update inhibitory
         in_to_ex_block = F_in_ex * np.random.uniform(-1, 0, (N_in, N_mod * N_ex))
