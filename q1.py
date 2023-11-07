@@ -10,65 +10,78 @@ from iznetwork import IzNetwork
 # 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
 
 # Relevant constants
-N_ex = 100                    # Number of neurons in an excitatory module
-N_in = 200                    # Number of neurons in the inhibitory module
-N_mod = 8                     # Number of excitatory modules in the modular network
-N_net = N_mod * N_ex + N_in   # Number of total neurons in the modular network
+N_ex_mod = 100                  # Number of neurons in an excitatory module
+N_in_mod = 25                   # Number of neurons in the inhibitory module
+N_mod = 8                       # Number of excitatory modules in the modular network
+N_ex = N_mod * N_ex_mod         # Total number of excitatory neurons in the modular network
+N_in = N_mod * N_in_mod         # Total number of inhibitory neurons in the modular network
+N_net = N_ex + N_in             # Number of total neurons in the modular network 
 
-F_ex_in = 50                  # Scaling factor for excitatory-to-inhibitory connection
-F_in_ex = 2                   # Scaling factor for inhibitory-to-excitatory connection
+F_ex_ex = 17                    # Scaling factor for excitatory-to-excitatory connection
+F_ex_in = 50                    # Scaling factor for excitatory-to-inhibitory connection
+F_iN_ex_mod = 2                 # Scaling factor for inhibitory-to-excitatory connection
+F_iN_in_mod = 1                 # Scaling factor for inhibitory-to-inhibitory connection 
+
+Dmax = 20                       # Maximum conduction delay
 
 
 class SmallWorldModularNetwork(object):
     def __init__(self, p):
-        self.W = np.zeros([1000, 1000])
-        self.D = np.ones([1000, 1000], dtype=int)
+        """
+        Initialise modular network.
+
+        Inputs:
+            p  -- Rewiring probability
+        """
+
+        self.W = np.zeros([N_net, N_net])
+        self.D = np.ones([N_net, N_net], dtype=int)
 
         # Update excitatory-to-excitatory blocks
-        for i in range(0, 800, N_ex):
-            Wblock, Dblock = self._excitatoryToExcitatory(N_ex)
-            self.W[i:i + N_ex, i:i + N_ex] = Wblock
-            self.D[i:i + N_ex, i:i + N_ex] = Dblock
+        for i in range(0, N_ex, N_ex_mod):
+            Wblock, Dblock = self._excitatoryToExcitatory(N_ex_mod)
+            self.W[i:i + N_ex_mod, i:i + N_ex_mod] = Wblock
+            self.D[i:i + N_ex_mod, i:i + N_ex_mod] = Dblock
 
-            # Update excitatory-to-inhibitory block
-        for j in range(N_mod * N_ex, N_net):
-            i = int(np.floor((j-800)/25))
-            neurons = np.random.randint(0, N_ex, size=4)
-            i = neurons + N_ex * i
-            self.W[i, j] = 50 * np.random.uniform(0, 1)
+        # Update excitatory-to-inhibitory block
+        for j in range(N_ex, N_net):
+            i = int(np.floor((j-N_ex)/N_in_mod))
+            neurons = np.random.randint(0, N_ex_mod, size=4)
+            i = neurons + N_ex_mod * i
+            self.W[i, j] = F_ex_in * np.random.uniform(0, 1)
 
 
         # Update inhibitory
-        in_to_ex_block = F_in_ex * np.random.uniform(-1, 0, (N_in, N_mod * N_ex))
+        in_to_ex_block = F_iN_ex_mod * np.random.uniform(-1, 0, (N_in, N_mod * N_ex_mod))
         in_to_in_block = np.random.uniform(-1, 0, (N_in, N_in))
-        self.W[800:, :] = np.column_stack((in_to_ex_block, in_to_in_block))
+        self.W[N_ex:, :] = np.column_stack((in_to_ex_block, in_to_in_block))
 
         # Inhibitory neurons cannot connect to themselves, thus set the connection weight to 0.
-        self.W[range(800, 1000), range(800, 1000)] = 0
+        self.W[range(N_ex, N_net), range(N_ex, N_net)] = 0
 
         self._rewireConnectivity(p)
 
-        self.net = IzNetwork(N_net, 20)
+        self.net = IzNetwork(N_net, Dmax)
         a = 0.02 * np.ones(N_net)
-        b = np.concatenate((0.2 * np.ones(800), 0.25 * np.ones(200)))
+        b = np.concatenate((0.2 * np.ones(N_ex), 0.25 * np.ones(N_in)))
         c = -65 * np.ones(N_net)
-        d = np.concatenate((8 * np.ones(800), 2 * np.ones(200)))
+        d = np.concatenate((8 * np.ones(N_ex), 2 * np.ones(N_in)))
         self.net.setParameters(a, b, c, d)
         self.net.setWeights(self.W)
         self.net.setDelays(self.D)
 
     def _excitatoryToExcitatory(self, N):
-        '''
+        """
         Generates excitatory-to-excitatory connections according to specification.
 
-        N - The number of neurons in the excitatory community.
+        Inputs:
+            N -- The number of neurons in the excitatory community.
 
-        W - The connectivity matrix for the excitatory-to-excitatory community.
-        D - The conduction delay matrix for the excitatory-to-excitatory community.
-        '''
+        Outputs:
+            W -- The connectivity matrix for the excitatory-to-excitatory community.
+            D -- The conduction delay matrix for the excitatory-to-excitatory community.
+        """
 
-        F = 17  # Scaling factor for excitatory-to-excitatory connections
-        Dmax = 20  # Maximum conduction delay
         N_edges = 1000  # Number of connections in this excitatory module
 
         W = np.zeros((N, N))
@@ -87,14 +100,20 @@ class SmallWorldModularNetwork(object):
         # Set connection weight to be 1 for randomly generated connections
         # Set random delays for these connections simultaneously.
         for edge in edges:
-            W[edge] = 1 * F
-            D[edge] = np.random.randint(1,
-                                        Dmax + 1)  # Assume delays have to be integer values in range [1,20], need to double check
+            W[edge] = 1 * F_ex_ex
+            D[edge] = np.random.randint(1, Dmax + 1) 
 
         return W, D
 
     def _rewireConnectivity(self, p):
-        src, tgt = np.where(self.W[:800, :800] > 0)
+        """
+        Rewires the connections between excitatory modules with probability p.
+
+        Inputs:
+            p  -- Rewiring probability 
+        """
+
+        src, tgt = np.where(self.W[:N_ex, :N_ex] > 0)
         for s, t in zip(src, tgt):
             if np.random.random() < p:
                 self.W[s, t] = 0
@@ -103,20 +122,28 @@ class SmallWorldModularNetwork(object):
                 # connection or itself (because the total density has to be preserved)
                 h = s
                 while s == h or self.W[s, h]:
-                    h = np.random.randint(800)
-                self.W[s, h] = 17
-                self.D[s, h] = np.random.randint(1, 20 + 1)
+                    h = np.random.randint(N_ex)
+                self.W[s, h] = 1 * F_ex_ex
+                self.D[s, h] = np.random.randint(1, Dmax + 1)
 
     def plotConnectivityMatrix(self):
-        y, x = np.where(self.W[:800, :800] > 0)
+        """
+        Plots connectivity matrix for excitatory modules. 
+        """
+
+        y, x = np.where(self.W[:N_ex, :N_ex] > 0)
         plt.scatter(x, y, s=1)
         plt.xlabel('to')
         plt.ylabel('from')
-        plt.ylim(800, 0)
-        plt.xlim(0, 800)
+        plt.ylim(N_ex, 0)
+        plt.xlim(0, N_ex)
         plt.show()
 
     def plotNeuronFiringAndMeanFiringRate(self):
+        """
+        Plots raster plot for excitatory neuron firing and mean firing rate. 
+        """
+
         T = 1000
 
         firing_matrix = np.zeros([T, N_mod])
@@ -129,25 +156,24 @@ class SmallWorldModularNetwork(object):
             V[t, :], _ = self.net.getState()
             fired = V[t, :] > 29
             for i in range(0, 8):
-                interval_sum = np.sum(fired[i * 100:i * 100 + 100])
+                interval_sum = np.sum(fired[i * N_ex_mod:i * N_ex_mod + N_ex_mod])
                 firing_matrix[t, i] = interval_sum
 
         t, n = np.where(V > 29)
         plt.subplot(211)
         plt.scatter(t, n)
-        plt.ylim(800, 0)
+        plt.ylim(N_ex, 0)
         plt.xlabel('Time (ms)')
         plt.ylabel('Neuron index')
 
         plt.subplot(212)
-        # Downsampling time
         windows = np.zeros([50, 8])
 
-        for i in range(0, 1000, 20):
+        for i in range(0, T, 20):
             windows[int(i / 20), :] = np.mean(firing_matrix[i:i + 50, :], axis=0)
 
         for i in range(8):
-            plt.plot(np.arange(0, 1000, 20), windows[:, i], label=f"Module {i}")
+            plt.plot(np.arange(0, T, 20), windows[:, i], label=f"Module {i}")
 
         plt.xlabel('Time (ms)')
         plt.ylabel('Mean firing rate')
