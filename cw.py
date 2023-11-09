@@ -202,7 +202,7 @@ class SmallWorldModularNetwork(object):
 
         firing_matrix, V = self._runSimulation(T, transient)
 
-        # Plot raster plot each excitatory neuron 
+        # Plot raster plot for each excitatory neuron 
         t, n = np.where(V > 29)
         plt.subplot(211)
         plt.title(f'p = {self._p}')
