@@ -1,13 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from iznetwork import IzNetwork
 
-# Plan
-# 1. Create 100x100 excitatory module, with weights and delays 
-# 2. Extend to 8 populations
-# 3. Create 200x200 inhibitory population and connect to excitatory populations (1000x1000 weight matrix)
-# 5. Rewiring process
-# 6. Connectivitiy matrix, raster plot and mean firing rate over each probability p.
+from iznetwork import IzNetwork
 
 # Relevant constants
 N_ex_mod = 100                  # Number of neurons in an excitatory module
