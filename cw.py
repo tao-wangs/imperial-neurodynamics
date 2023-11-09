@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 
 from iznetwork import IzNetwork
 
+
 # Relevant constants
 N_ex_mod = 100                  # Number of neurons in an excitatory module
 N_in_mod = 25                   # Number of neurons in the inhibitory module
@@ -17,7 +18,6 @@ F_iN_ex_mod = 2                 # Scaling factor for inhibitory-to-excitatory co
 F_iN_in_mod = 1                 # Scaling factor for inhibitory-to-inhibitory connection 
 
 Dmax = 20                       # Maximum conduction delay
-
 
 class SmallWorldModularNetwork(object):
     def __init__(self, p):
@@ -237,3 +237,4 @@ if __name__ == "__main__":
     network = SmallWorldModularNetwork(p)
     network.plotConnectivityMatrix()
     network.plotNeuronFiringAndMeanFiringRate(T, transient)
+    
