@@ -59,11 +59,22 @@ class SmallWorldModularNetwork(object):
         self._rewireConnectivity()
 
         # Instantiate IzNetwork with parameters from 'L04 - Simple Neuron Models'
+        # self.net = IzNetwork(N_net, Dmax)
+        # a = 0.02 * np.ones(N_net)
+        # b = np.concatenate((0.2 * np.ones(N_ex), 0.25 * np.ones(N_in)))
+        # c = -65 * np.ones(N_net)
+        # d = np.concatenate((8 * np.ones(N_ex), 2 * np.ones(N_in)))
+        # self.net.setParameters(a, b, c, d)
+        # self.net.setWeights(self.W)
+        # self.net.setDelays(self.D)
+
+        # Instantiate IzNetwork with variation in parameters from 'Exercises 2'
         self.net = IzNetwork(N_net, Dmax)
-        a = 0.02 * np.ones(N_net)
-        b = np.concatenate((0.2 * np.ones(N_ex), 0.25 * np.ones(N_in)))
-        c = -65 * np.ones(N_net)
-        d = np.concatenate((8 * np.ones(N_ex), 2 * np.ones(N_in)))
+        r = np.random.rand(N_net)
+        a = np.concatenate((0.02*np.ones(N_ex), 0.02+0.08*r[800:]))
+        b = np.concatenate((0.2*np.ones(N_ex), 0.25-0.05*r[800:]))
+        c = np.concatenate((-65+15*r[:800]**2, -65*np.ones(N_in)))
+        d = np.concatenate((8-6*r[:800]**2, 2*np.ones(N_in)))
         self.net.setParameters(a, b, c, d)
         self.net.setWeights(self.W)
         self.net.setDelays(self.D)
@@ -232,7 +243,7 @@ if __name__ == "__main__":
 
     # Define transient time and measurement time (ms)
     T = 1000
-    transient = 50
+    transient = 25
 
     network = SmallWorldModularNetwork(p)
     network.plotConnectivityMatrix()
